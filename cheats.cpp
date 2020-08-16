@@ -1,4 +1,5 @@
 #include "cheats.h"
+#include "offset.h"
 
 r_hmodue gtav_cheats::get_mod_addr(const r_wchar* str)
 {
@@ -52,26 +53,26 @@ void gtav_cheats::update_addrs()
 
 	if (m_dwpReplayInterfaceBase)
 	{
-		m_Replay_dwpPedInterface = read<r_dword_ptr>(m_dwpReplayInterfaceBase + 0x18);
+		m_Replay_dwpPedInterface = read<r_dword_ptr>(m_dwpReplayInterfaceBase + OFFSET_REPLAY_PED_INTERFACE);
 		if (m_Replay_dwpPedInterface)
 		{
-			m_Replay_dwpPedList = read<r_dword_ptr>(m_Replay_dwpPedInterface + 0x100);
+			m_Replay_dwpPedList = read<r_dword_ptr>(m_Replay_dwpPedInterface + OFFSET_PED_INTERFACE_PED_LIST);
 		}
 	}
 
 	if (m_dwpWorldBase)
 	{
-		m_dwpPlayerBase = read<r_dword_ptr>(m_dwpWorldBase + 0x08);
+		m_dwpPlayerBase = read<r_dword_ptr>(m_dwpWorldBase + OFFSET_PLAYER);
 		if (m_dwpPlayerBase)
 		{
-			m_Player_dwpPosBase = read<r_dword_ptr>(m_dwpPlayerBase + 0x30);
-			m_Player_dwpPlayerInfo = read<r_dword_ptr>(m_dwpPlayerBase + 0x10b8);
-			m_Player_dwpAttackerBase = read<r_dword_ptr>(m_dwpPlayerBase + 0x2a8);
-			m_dwpVehicleBase = read<r_dword_ptr>(m_dwpPlayerBase + 0xd28);
+			m_Player_dwpPosBase = read<r_dword_ptr>(m_dwpPlayerBase + OFFSET_ENTITY_POSBASE);
+			m_Player_dwpPlayerInfo = read<r_dword_ptr>(m_dwpPlayerBase + OFFSET_PLAYER_INFO);
+			m_Player_dwpAttackerBase = read<r_dword_ptr>(m_dwpPlayerBase + OFFSET_ENTITY_ATTACKER);
+			m_dwpVehicleBase = read<r_dword_ptr>(m_dwpPlayerBase + OFFSET_PLAYER_VEHICLE);
 			if (m_dwpVehicleBase)
 			{
-				m_Vehicle_dwpPosBase = read<r_dword_ptr>(m_dwpVehicleBase + 0x30);
-				m_Vehicle_dwpHandling = read<r_dword_ptr>(m_dwpVehicleBase + 0x918);
+				m_Vehicle_dwpPosBase = read<r_dword_ptr>(m_dwpVehicleBase + OFFSET_ENTITY_POSBASE);
+				m_Vehicle_dwpHandling = read<r_dword_ptr>(m_dwpVehicleBase + OFFSET_VEHICLE_HANDLING);
 			}
 		}
 	}
@@ -79,13 +80,13 @@ void gtav_cheats::update_addrs()
 	m_dwpWeaponBase = read<r_dword_ptr>((r_dword_ptr)m_mod + ADDRESS_WEAPON);
 	if (m_dwpPlayerBase)
 	{
-		m_dwpWeaponManager = read<r_dword_ptr>(m_dwpPlayerBase + 0x10c8);
+		m_dwpWeaponManager = read<r_dword_ptr>(m_dwpPlayerBase + OFFSET_WEAPON_MANAGER);
 		if (m_dwpWeaponManager)
 		{
-			m_dwpWeaponCur = read<r_dword_ptr>(m_dwpWeaponManager + 0x20);
+			m_dwpWeaponCur = read<r_dword_ptr>(m_dwpWeaponManager + OFFSET_WEAPON_CURRENT);
 			if (m_dwpWeaponCur)
 			{
-				m_dwpAmmoInfo = read<r_dword_ptr>(m_dwpWeaponCur + 0x60);
+				m_dwpAmmoInfo = read<r_dword_ptr>(m_dwpWeaponCur + OFFSET_WEAPON_AMMOINFO);
 			}
 		}
 	}
@@ -111,6 +112,7 @@ void gtav_cheats::show_menu()
 		cmd_color(m_state_unlock_bunker_research, "[ALT] + [+] \t 解锁地堡研究");
 		cmd_color(m_state_anti_AFK_kick_out, "[ALT] + [-] \t 反AFK踢出战局");
 		cmd_color(m_state_money_bag, "[ALT] + [/] \t 钱袋刷钱");
+		cmd_color(m_state_no_reload, "[ALT] + [*] \t 无需换弹");
 
 		std::cout << std::endl;
 
@@ -197,16 +199,16 @@ void gtav_cheats::start_move(vector_3 dest)
 {
 	if (m_dwpPlayerBase)
 	{
-		r_byte res = read<r_byte>(m_dwpPlayerBase + 0x146b);
+		r_byte res = read<r_byte>(m_dwpPlayerBase + OFFSET_PLAYER_INVEHICLE);
 		if (!((res >> 4) & 1))//在车上
 		{
-			if (m_Vehicle_dwpPosBase) write<vector_3>(m_Vehicle_dwpPosBase + 0x50, dest);
-			if (m_dwpVehicleBase) write<vector_3>(m_dwpVehicleBase + 0x90, dest);
+			if (m_Vehicle_dwpPosBase) write<vector_3>(m_Vehicle_dwpPosBase + OFFSET_ENTITY_POSBASE_POS, dest);
+			if (m_dwpVehicleBase) write<vector_3>(m_dwpVehicleBase + OFFSET_ENTITY_POS, dest);
 		}
 		else
 		{
-			if (m_Player_dwpPosBase) write<vector_3>(m_Player_dwpPosBase + 0x50, dest);
-			if (m_dwpPlayerBase) write<vector_3>(m_dwpPlayerBase + 0x90, dest);
+			if (m_Player_dwpPosBase) write<vector_3>(m_Player_dwpPosBase + OFFSET_ENTITY_POSBASE_POS, dest);
+			if (m_dwpPlayerBase) write<vector_3>(m_dwpPlayerBase + OFFSET_ENTITY_POS, dest);
 		}
 	}
 }
@@ -233,8 +235,8 @@ void gtav_cheats::clear_wanted()
 {
 	if (m_Player_dwpPlayerInfo)
 	{
-		r_dword res = read<r_dword>(m_Player_dwpPlayerInfo + 0x848);
-		if (res > 0) write<r_dword>(m_Player_dwpPlayerInfo + 0x848, 0);
+		r_dword res = read<r_dword>(m_Player_dwpPlayerInfo + OFFSET_PLAYER_INFO_WANTED);
+		if (res > 0) write<r_dword>(m_Player_dwpPlayerInfo + OFFSET_PLAYER_INFO_WANTED, 0);
 	}
 }
 
@@ -242,8 +244,8 @@ void gtav_cheats::kill_self()
 {
 	if (m_dwpPlayerBase)
 	{
-		write<float>(m_dwpPlayerBase + 0x280, 0.f);
-		write<float>(m_dwpPlayerBase + 0x14b8, 0.f);
+		write<float>(m_dwpPlayerBase + OFFSET_ENTITY_HEALTH, 0.f);
+		write<float>(m_dwpPlayerBase + OFFSET_PLAYER_ARMOR, 0.f);
 	}
 }
 
@@ -255,7 +257,7 @@ void gtav_cheats::sit_in_personal_vehicle()
 		return 8 * (val & 0x3FFFF) + res;
 	};
 
-	r_dword_ptr m_dwpIntoPersonalVehicle = func(2409284 + 8);
+	r_dword_ptr m_dwpIntoPersonalVehicle = func(2409287 + 8);
 	if (m_dwpIntoPersonalVehicle)
 	{
 		write<int>(m_dwpIntoPersonalVehicle, 1);
@@ -271,8 +273,8 @@ void gtav_cheats::unlimited_endurance(bool state)
 {
 	if (m_Player_dwpPlayerInfo)
 	{
-		values res = read<values>(m_Player_dwpPlayerInfo + 0xcb0);
-		if (state && res._cur < res._max) write<float>(m_Player_dwpPlayerInfo + 0xcb0, res._max);
+		values res = read<values>(m_Player_dwpPlayerInfo + OFFSET_PLAYER_INFO_STAMINA);
+		if (state && res._cur < res._max) write<float>(m_Player_dwpPlayerInfo + OFFSET_PLAYER_INFO_STAMINA, res._max);
 	}
 }
 
@@ -280,9 +282,9 @@ void gtav_cheats::npc_ignore_player(bool state)
 {
 	if (m_Player_dwpPlayerInfo)
 	{
-		r_dword res = read<r_dword>(m_Player_dwpPlayerInfo + 0x830);
-		if (state && res != 0x450000) write<r_dword>(m_Player_dwpPlayerInfo + 0x830, 0x450000);
-		else if (state == false && res == 0x450000) write<r_dword>(m_Player_dwpPlayerInfo + 0x830, 0);
+		r_dword res = read<r_dword>(m_Player_dwpPlayerInfo + OFFSET_PLAYER_INFO_NPC_IGNORE);
+		if (state && res != 0x450000) write<r_dword>(m_Player_dwpPlayerInfo + OFFSET_PLAYER_INFO_NPC_IGNORE, 0x450000);
+		else if (state == false && res == 0x450000) write<r_dword>(m_Player_dwpPlayerInfo + OFFSET_PLAYER_INFO_NPC_IGNORE, 0);
 	}
 }
 
@@ -290,9 +292,9 @@ void gtav_cheats::player_god_mode(bool state)
 {
 	if (m_dwpPlayerBase)
 	{
-		r_byte res = read<r_byte>(m_dwpPlayerBase + 0x189);
-		if (state && res != 1) write<r_byte>(m_dwpPlayerBase + 0x189, 1);
-		else if (state == false && res == 1) write<r_byte>(m_dwpPlayerBase + 0x189, 0);
+		r_byte res = read<r_byte>(m_dwpPlayerBase + OFFSET_ENTITY_GOD);
+		if (state && res != 1) write<r_byte>(m_dwpPlayerBase + OFFSET_ENTITY_GOD, 1);
+		else if (state == false && res == 1) write<r_byte>(m_dwpPlayerBase + OFFSET_ENTITY_GOD, 0);
 	}
 }
 
@@ -300,8 +302,8 @@ void gtav_cheats::never_fall(bool state)
 {
 	if (m_dwpPlayerBase)
 	{
-		r_byte res = read<r_byte>(m_dwpPlayerBase + 0x10a8);
-		if (state && res & 0x20) write<r_byte>(m_dwpPlayerBase + 0x10a8, res ^ 0x20);
+		r_byte res = read<r_byte>(m_dwpPlayerBase + OFFSET_PLAYER_RAGDOLL);
+		if (state && res & 0x20) write<r_byte>(m_dwpPlayerBase + OFFSET_PLAYER_RAGDOLL, res ^ 0x20);
 	}
 }
 
@@ -309,8 +311,8 @@ void gtav_cheats::fake_dead_hide(bool state)
 {
 	if (m_dwpPlayerBase)
 	{
-		float res = read<float>(m_dwpPlayerBase + 0x2a0);
-		if (state && res > 0.f) write<float>(m_dwpPlayerBase + 0x2a0, 0.f);
+		float res = read<float>(m_dwpPlayerBase + OFFSET_ENTITY_HEALTH_MAX);
+		if (state && res > 0.f) write<float>(m_dwpPlayerBase + OFFSET_ENTITY_HEALTH_MAX, 0.f);
 	}
 }
 
@@ -318,9 +320,9 @@ void gtav_cheats::vehicle_god_mode(bool state)
 {
 	if (m_dwpVehicleBase)
 	{
-		r_byte res = read<r_byte>(m_dwpVehicleBase + 0x189);
-		if (state && res != 1) write<r_byte>(m_dwpVehicleBase + 0x189, 1);
-		else if (res == false && res != 0) write<r_byte>(m_dwpVehicleBase + 0x189, 0);
+		r_byte res = read<r_byte>(m_dwpVehicleBase + OFFSET_ENTITY_GOD);
+		if (state && res != 1) write<r_byte>(m_dwpVehicleBase + OFFSET_ENTITY_GOD, 1);
+		else if (res == false && res != 0) write<r_byte>(m_dwpVehicleBase + OFFSET_ENTITY_GOD, 0);
 	}
 }
 
@@ -328,8 +330,8 @@ void gtav_cheats::infinite_jet(bool state)
 {
 	if (m_dwpVehicleBase)
 	{
-		float res = read<float>(m_dwpVehicleBase + 0x320);
-		if (state && res != 1) write<float>(m_dwpVehicleBase + 0x320, 1);
+		float res = read<float>(m_dwpVehicleBase + OFFSET_VEHICLE_BOOST);
+		if (state && res != 1.25f) write<float>(m_dwpVehicleBase + OFFSET_VEHICLE_BOOST, 1.25f);
 	}
 }
 
@@ -337,8 +339,24 @@ void gtav_cheats::super_weapon_damage(bool state)
 {
 	if (m_dwpWeaponCur)
 	{
-		float res = read<float>(m_dwpWeaponCur + 0xb0);
-		if (state && res != 50000.f) write<float>(m_dwpWeaponCur + 0xb0, 50000.f);
+		static float max_value = 1000000.0f;
+		float res = read<float>(m_dwpWeaponCur + OFFSET_WEAPON_BULLET_DMG);
+		if (state && res != max_value) write<float>(m_dwpWeaponCur + OFFSET_WEAPON_BULLET_DMG, max_value);
+	}
+}
+
+void gtav_cheats::no_reload(bool state)
+{
+	struct buffer { unsigned char data[3]; };
+	if (state)
+	{
+		buffer temp{ 0x90, 0x90, 0x90 };
+		write<buffer>((DWORD_PTR)m_mod + ADDRESS_MAGAZINE, temp);
+	}
+	else
+	{
+		buffer temp{ 0x41, 0x2B, 0xC9 };
+		write<buffer>((DWORD_PTR)m_mod + ADDRESS_MAGAZINE, temp);
 	}
 }
 
@@ -363,8 +381,8 @@ void gtav_cheats::space_based_gun_without_cooling(bool state)
 {
 	if (m_dwpTunableBase)
 	{
-		r_dword res = read<r_dword>(m_dwpTunableBase + 0x2c128);
-		if (state && res != 0) write<r_dword>(m_dwpTunableBase + 0x2c128, 0);
+		r_dword res = read<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_ORBITAL_CANNON_COOLDOWN);
+		if (state && res != 0) write<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_ORBITAL_CANNON_COOLDOWN, 0);
 	}
 }
 
@@ -372,8 +390,8 @@ void gtav_cheats::unlock_bunker_research(bool state)
 {
 	if (m_dwpTunableBase)
 	{
-		r_dword res = read<r_dword>(m_dwpTunableBase + 0x29bb8);
-		if (state && res != 1) write<r_dword>(m_dwpTunableBase + 0x29bb8, 1);
+		r_dword res = read<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_BUNKER_RESEARCH);
+		if (state && res != 1) write<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_BUNKER_RESEARCH, 1);
 	}
 }
 
@@ -381,15 +399,15 @@ void gtav_cheats::anti_AFK_kick_out(bool state)
 {
 	if (m_dwpTunableBase)
 	{
-		r_dword a = read<r_dword>(m_dwpTunableBase + 0x2c0);
-		r_dword b = read<r_dword>(m_dwpTunableBase + 0x2c8);
-		r_dword c = read<r_dword>(m_dwpTunableBase + 0x2d0);
-		r_dword d = read<r_dword>(m_dwpTunableBase + 0x2d8);
+		r_dword a = read<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_ANTI_IDLE_KICK1);
+		r_dword b = read<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_ANTI_IDLE_KICK2);
+		r_dword c = read<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_ANTI_IDLE_KICK3);
+		r_dword d = read<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_ANTI_IDLE_KICK4);
 
-		if (a != 2000000000) write<r_dword>(m_dwpTunableBase + 0x2c0, 2000000000);
-		if (b != 2000000000) write<r_dword>(m_dwpTunableBase + 0x2c8, 2000000000);
-		if (c != 2000000000) write<r_dword>(m_dwpTunableBase + 0x2d0, 2000000000);
-		if (d != 2000000000) write<r_dword>(m_dwpTunableBase + 0x2d8, 2000000000);
+		if (a != 2000000000) write<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_ANTI_IDLE_KICK1, 2000000000);
+		if (b != 2000000000) write<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_ANTI_IDLE_KICK2, 2000000000);
+		if (c != 2000000000) write<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_ANTI_IDLE_KICK3, 2000000000);
+		if (d != 2000000000) write<r_dword>(m_dwpTunableBase + OFFSET_TUNABLE_ANTI_IDLE_KICK4, 2000000000);
 	}
 }
 
@@ -408,11 +426,11 @@ void gtav_cheats::money_bag(bool state)
 
 	if (state && m_dwpPlayerBase)
 	{
-		r_dword_ptr m_dwpMoneyObject = func(2507706);
-		r_dword_ptr m_dwpMoneyVal = func(2507701);
-		r_dword_ptr m_dwpMoneyPosX = func(2507703);
-		r_dword_ptr m_dwpMoneyPosY = func(2507704);
-		r_dword_ptr m_dwpMoneyPosZ = func(2507705);
+		r_dword_ptr m_dwpMoneyObject = func(2513253);
+		r_dword_ptr m_dwpMoneyVal = func(2513247 + 1);
+		r_dword_ptr m_dwpMoneyPosX = func(2513247 + 3);
+		r_dword_ptr m_dwpMoneyPosY = func(2513247 + 4);
+		r_dword_ptr m_dwpMoneyPosZ = func(2513247 + 5);
 		state = m_dwpMoneyObject && m_dwpMoneyVal
 			&& m_dwpMoneyPosX && m_dwpMoneyPosY && m_dwpMoneyPosZ;
 
@@ -427,8 +445,8 @@ void gtav_cheats::money_bag(bool state)
 			write<float>(m_dwpMoneyPosY, res.y);
 			write<float>(m_dwpMoneyPosZ, res.z + 5.0f);
 
-			float buffer = read<float>(func(2507700));
-			r_dword_ptr m_dwpMoneyCall = func(84 * (r_dword)buffer + 4263878);
+			float buffer = read<float>(func(2513247));
+			r_dword_ptr m_dwpMoneyCall = func(85 * (r_dword)buffer + 4263954 + 69);
 			write<r_byte>(m_dwpMoneyCall, 2);
 		}
 	}
@@ -445,8 +463,8 @@ void gtav_cheats::handle_queue()
 		return 8 * (val & 0x3FFFF) + res;
 	};
 
-	r_dword_ptr m_dwpStatCall = func(1373500);
-	r_dword_ptr m_dwpStatHash = func(1384095);
+	r_dword_ptr m_dwpStatCall = func(1377170);
+	r_dword_ptr m_dwpStatHash = func(1387876);
 	r_dword_ptr m_dwpStatValue = func(939452);
 	bool state = m_dwpStatCall && m_dwpStatHash && m_dwpStatValue;
 
@@ -456,6 +474,7 @@ void gtav_cheats::handle_queue()
 		m_dwpStatHash += 0x20;
 		m_dwpStatValue += 0xACB0;
 
+		system("cls");
 		std::cout << std::endl << std::endl << "正在处理 -> " << std::endl;
 
 		for (int i = 0; i < size; i++)
@@ -487,8 +506,8 @@ void gtav_cheats::battle_handle(int tip)
 		return 8 * (val & 0x3FFFF) + res;
 	};
 
-	r_dword_ptr m_dwpSessionID = func(1312832);
-	r_dword_ptr m_dwpSessionTransition = func(1312424);
+	r_dword_ptr m_dwpSessionID = func(1312836);
+	r_dword_ptr m_dwpSessionTransition = func(1312425);
 	bool state = m_dwpSessionID && m_dwpSessionTransition;
 
 	if (state)
@@ -500,7 +519,7 @@ void gtav_cheats::battle_handle(int tip)
 	}
 }
 
-void gtav_cheats::generate_vehicle(unsigned int val)
+void gtav_cheats::generate_vehicle(unsigned int val, float pos)
 {
 	auto func = [&](int val) -> r_dword_ptr
 	{
@@ -508,16 +527,16 @@ void gtav_cheats::generate_vehicle(unsigned int val)
 		return 8 * (val & 0x3FFFF) + res;
 	};
 
-	r_dword_ptr m_dwpVehicleSpawn1 = func(2459034 + 2);
-	r_dword_ptr m_dwpVehicleSpawn2 = func(2459034 + 5);
-	r_dword_ptr m_dwpVehicleHash = func(2459034 + 27 + 66);
-	r_dword_ptr m_dwpVehicleKickPrevent1 = func(2459034 + 121);
-	r_dword_ptr m_dwpVehicleKickPrevent2 = func(2459034 + 122);
-	r_dword_ptr m_dwpVehicleX = func(2459034 + 7 + 0);
-	r_dword_ptr m_dwpVehicleY = func(2459034 + 7 + 1);
-	r_dword_ptr m_dwpVehicleZ = func(2459034 + 7 + 2);
-	r_dword_ptr m_dwpPrimaryColor = func(2459034 + 27 + 5);
-	r_dword_ptr m_dwpSecondaryColor = func(2459034 + 27 + 6);
+	r_dword_ptr m_dwpVehicleSpawn1 = func(OFFSET_GLOBAL_VEHICLE_HASH + 2);
+	r_dword_ptr m_dwpVehicleSpawn2 = func(OFFSET_GLOBAL_VEHICLE_HASH + 5);
+	r_dword_ptr m_dwpVehicleHash = func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 66);
+	r_dword_ptr m_dwpVehicleKickPrevent1 = func(OFFSET_GLOBAL_VEHICLE_HASH + 121);
+	r_dword_ptr m_dwpVehicleKickPrevent2 = func(OFFSET_GLOBAL_VEHICLE_HASH + 122);
+	r_dword_ptr m_dwpVehicleX = func(OFFSET_GLOBAL_VEHICLE_HASH + 7 + 0);
+	r_dword_ptr m_dwpVehicleY = func(OFFSET_GLOBAL_VEHICLE_HASH + 7 + 1);
+	r_dword_ptr m_dwpVehicleZ = func(OFFSET_GLOBAL_VEHICLE_HASH + 7 + 2);
+	r_dword_ptr m_dwpPrimaryColor = func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 5);
+	r_dword_ptr m_dwpSecondaryColor = func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 6);
 	bool state = m_dwpVehicleSpawn1 && m_dwpVehicleSpawn2 && m_dwpVehicleHash
 		&& m_dwpVehicleKickPrevent1 && m_dwpVehicleKickPrevent2
 		&& m_dwpVehicleX && m_dwpVehicleY && m_dwpVehicleZ
@@ -528,8 +547,8 @@ void gtav_cheats::generate_vehicle(unsigned int val)
 		vector_3 res = read<vector_3>(m_dwpPlayerBase + 0x90);
 		float _cos = read<float>(m_Player_dwpPosBase + 0x20);
 		float _sin = read<float>(m_Player_dwpPosBase + 0x30);
-		res.x += 6.0f * _sin;
-		res.y += 6.0f * _cos;
+		res.x += pos * _sin;
+		res.y += pos * _cos;
 
 		write<unsigned int>(m_dwpVehicleHash, val);
 		write<int>(m_dwpVehicleKickPrevent1, 2);
@@ -542,28 +561,28 @@ void gtav_cheats::generate_vehicle(unsigned int val)
 		write<float>(m_dwpVehicleY, res.y);
 		write<float>(m_dwpVehicleZ, -255.0f);
 
-		write<r_byte>(func(2459034 + 27 + 10), 1);
-		write<r_byte>(func(2459034 + 27 + 11), 1);
-		write<r_byte>(func(2459034 + 27 + 12), 1);
-		write<r_byte>(func(2459034 + 27 + 13), 1);
-		write<r_byte>(func(2459034 + 27 + 14), 1);
-		write<r_byte>(func(2459034 + 27 + 15), 1);
-		write<r_byte>(func(2459034 + 27 + 16), 1);
-		write<r_byte>(func(2459034 + 27 + 17), 1);
-		write<r_byte>(func(2459034 + 27 + 18), 1);
-		write<r_byte>(func(2459034 + 27 + 19), 1);
-		write<r_byte>(func(2459034 + 27 + 20), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 10), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 11), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 12), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 13), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 14), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 15), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 16), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 17), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 18), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 19), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 20), 1);
 
-		write<r_byte>(func(2459034 + 27 + 21), 4);
-		write<r_byte>(func(2459034 + 27 + 22), 3);
-		write<r_byte>(func(2459034 + 27 + 23), 3);
-		write<r_byte>(func(2459034 + 27 + 24), 57);
-		write<r_byte>(func(2459034 + 27 + 25), 4);
-		write<r_byte>(func(2459034 + 27 + 26), 5);
-		write<r_byte>(func(2459034 + 27 + 28), 1);
-		write<r_byte>(func(2459034 + 27 + 30), 1);
-		write<r_byte>(func(2459034 + 27 + 32), 1);
-		write<r_byte>(func(2459034 + 27 + 65), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 21), 4);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 22), 3);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 23), 3);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 24), 57);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 25), 4);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 26), 5);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 28), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 30), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 32), 1);
+		write<r_byte>(func(OFFSET_GLOBAL_VEHICLE_HASH + 27 + 65), 1);
 
 		write<int>(func(2459034 + 27 + 77), 0xF0400200);
 
@@ -1034,27 +1053,27 @@ void gtav_cheats::initialize_gtav()
 
 	if (get_mod_addr(L"steam_api64.dll"))//Steam
 	{
-		ADDRESS_WORLD = 0x24B0C50;
-		ADDRESS_BLIP = 0x1F373D0;
-		ADDRESS_AMMO = 0x0EE1E19;
-		ADDRESS_MAGAZINE = 0x0EE1DD4;
-		ADDRESS_TUNABLE = 0x2D46198;
+		ADDRESS_WORLD = 0x24CD000;
+		ADDRESS_BLIP = 0x1F524F0;
+		ADDRESS_AMMO = 0x101BFBD;
+		ADDRESS_MAGAZINE = 0x101BF78;
+		ADDRESS_TUNABLE = 0x2D765E8;
 		ADDRESS_WEAPON = 0x02810670;
-		ADDRESS_GLOBAL = 0x2D46190;
-		ADDRESS_PLAYER_LIST = 0x1D7D4C0;
-		ADDRESS_REPLAY_INTERFACE = 0;
+		ADDRESS_GLOBAL = 0x2D765E0;
+		ADDRESS_PLAYER_LIST = 0x1D98AE8;
+		ADDRESS_REPLAY_INTERFACE = 0x1EC7E40;
 	}
 	else//Epic
 	{
-		ADDRESS_WORLD = 0x24AECE0;
-		ADDRESS_BLIP = 0x1F35770;
-		ADDRESS_AMMO = 0x0EE073D;
-		ADDRESS_MAGAZINE = 0x0EE06F8;
-		ADDRESS_TUNABLE = 0x2D431F8;
+		ADDRESS_WORLD = 0x24C8858;
+		ADDRESS_BLIP = 0x1F4F940;
+		ADDRESS_AMMO = 0x101B6D9;
+		ADDRESS_MAGAZINE = 0x101B694;
+		ADDRESS_TUNABLE = 0x2D70DA8;
 		ADDRESS_WEAPON = 0x0280E650;
-		ADDRESS_GLOBAL = 0x2D431F0;
-		ADDRESS_PLAYER_LIST = 0x1D7B318;
-		ADDRESS_REPLAY_INTERFACE = 0x1EAA2D0;
+		ADDRESS_GLOBAL = 0x2D70DA0;
+		ADDRESS_PLAYER_LIST = 0x1D949A0;
+		ADDRESS_REPLAY_INTERFACE = 0x1EC3828;
 	}
 
 	m_mod = get_mod_addr(L"GTA5.exe");
@@ -1093,6 +1112,7 @@ void gtav_cheats::start_cheats()
 		func(two_check(VK_MENU, VK_ADD), m_state_unlock_bunker_research);
 		func(two_check(VK_MENU, VK_SUBTRACT), m_state_anti_AFK_kick_out);
 		func(two_check(VK_MENU, VK_DIVIDE), m_state_money_bag);
+		func(two_check(VK_MENU, VK_MULTIPLY), m_state_no_reload);
 
 		if (single_check(VK_F5)) move_to_target();
 		if (single_check(VK_F6)) move_to_aim();
@@ -1136,6 +1156,7 @@ void gtav_cheats::start_cheats()
 		unlock_bunker_research(m_state_unlock_bunker_research);
 		anti_AFK_kick_out(m_state_anti_AFK_kick_out);
 		money_bag(m_state_money_bag);
+		no_reload(m_state_no_reload);
 
 		handle_queue();
 

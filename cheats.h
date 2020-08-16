@@ -6,7 +6,7 @@ class gtav_cheats
 private:
 	r_hwnd m_hwnd;			//gtav窗口句柄
 	r_dword m_pid;			//gtav进程ID
-	r_handle m_proc;		//gtav进程句柄
+	r_handle m_proc;			//gtav进程句柄
 	r_hmodue m_mod;		//gtav主要模块
 
 private:
@@ -63,6 +63,7 @@ private:
 	bool m_state_unlock_bunker_research = false;
 	bool m_state_anti_AFK_kick_out = true;
 	bool m_state_money_bag = false;
+	bool m_state_no_reload = false;
 
 private:
 	//查找指定名称的mod
@@ -153,6 +154,9 @@ private:
 	//无敌超级伤害
 	void super_weapon_damage(bool state);
 
+	//无需换弹
+	void no_reload(bool state);
+
 	//无限弹药
 	void unlimited_ammo(bool state);
 
@@ -175,7 +179,7 @@ private:
 	void battle_handle(int tip);
 
 	//生成载具
-	void generate_vehicle(unsigned int val);
+	void generate_vehicle(unsigned int val, float pos = 6.0f);
 
 	//角色属性全满
 	void full_character_attributes();
